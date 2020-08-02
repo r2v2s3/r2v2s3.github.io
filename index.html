@@ -1,18 +1,537 @@
 <!DOCTYPE html>
-
 <html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <title>my-first-website</title>
-  <LINK href="styles.css" rel="stylesheet" type="text/css">
-</head>
+<meta charset="utf-8">
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+
+<!-- Example based on http://bl.ocks.org/mbostock/3887118 -->
+<!-- Tooltip example from http://www.d3noob.org/2013/01/adding-tooltips-to-d3js-graph.html -->
+
+<style>
+  body {
+    font: 14px sans-serif;
+    background-color: "#33FFF1";
+    margin-left: 50px;
+  }
+
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+  }
+
+  .dot {
+    stroke: #000;
+  }
+
+  .tooltip {
+    position: absolute;
+    width: 200px;
+    height: 28px;
+    pointer-events: none;
+  }
+
+  h1 {
+    text-align: center;
+  }
+
+  h2 {
+    text-align: left;
+  }
+</style>
 
 <body>
 
-<img src="https://octodex.github.com/images/daftpunktocat-thomas.gif" id="octocat" alt="octocat-gif" />
+  <div>
+    <h1>Are Covid-19 patients with specific blood types at higher risk of mortality?</h1>
+  </div>
 
-<!-- Change this code here by copy and pasting your template on line 15 -->
-<p>Welcome to your first GitHub Pages website!</p>
+  <div id="normal-text">It is a known fact that people with specific blood types
+     have increased incidence of specific
+    infections.
+    Blood type to disease associations have been studied since 1900s
+    <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5061611/">Ref Link</a> <br> <br>
+    <style>
+      table,
+      th,
+      td {
+        border: 1px solid black;
+      }
+
+      th,
+      td {
+        padding: 10px;
+      }
+    </style>
+    <table style="width:50%;border-collapse: collapse; border: none;">
+      <tr>
+        <th>Blood Type</th>
+        <th>Increased incident rate associations</th>
+      </tr>
+      <tr>
+        <td>O</td>
+        <td>plague, cholera, mumps, and tuberculosis.</td>
+      </tr>
+      <tr>
+        <td>A</td>
+        <td>smallpox</td>
+      </tr>
+      <tr>
+        <td>B</td>
+        <td>gonorrhea, tuberculosis, Streptococcus pneumoniae, E. coli, and salmonella infections</td>
+      </tr>
+      <tr>
+        <td>AB</td>
+        <td>smallpox, E. coli, and salmonella infections</td>
+      </tr>
+    </table>
+
+  </div>
+
+  <br><br>Similarly, there is growing evidence that <b>Blood Type A+</b> has increased mortality rates for Covid-19 patients <a
+    href="https://www.latimes.com/science/story/2020-07-09/link-between-covid-19-and-blood-type"> LA Times Article</a>.
+
+  <br> The below interactive visualization highlights this association:
+
+  <p><span><label for="y-axis">Select y-axis</label></span>
+    <select id="y-value">
+      <option value="case_fatality_per_k">case_fatality_per_k</option>
+      <option value="A+">A+</option>
+      <option value="A-">A-</option>
+      <option value="AB+">AB+</option>
+      <option value="AB-">AB-</option>
+      <option value="B+">B+</option>
+      <option value="B-">B-</option>
+      <option value="O+">O+</option>
+      <option value="O-">O-</option>
+      <option value="confirmed_cases">confirmed_cases</option>
+      <option value="deaths">deaths</option>
+      <option value="Population">Population</option>
+    </select>
+
+  <p><span><label for="x-axis">Select x-axis</label></span>
+    <select id="x-value">
+      <option value="confirmed_cases">confirmed_cases</option>
+      <option value="A+">A+</option>
+      <option value="A-">A-</option>
+      <option value="AB+">AB+</option>
+      <option value="AB-">AB-</option>
+      <option value="B+">B+</option>
+      <option value="B-">B-</option>
+      <option value="O+">O+</option>
+      <option value="O-">O-</option>
+      <option value="deaths">deaths</option>
+      <option value="case_fatality_per_k">case_fatality_per_k</option>
+      <option value="Population">Population</option>
+    </select>
+
+    <button onclick="setGraph()">submit</button>
+
+  <table style="border-collapse: collapse; border: none;">
+    <tr style="border: none;">
+      <td style="border: none;">
+        <div id="plotterDiv"></div>
+      </td>
+      <td style="border: none;">
+        <div style="margin-left: 50px">
+          <b>Below are the observations</b>:
+          <br>
+          <ul>1) With no country(s) selected in chart 1, the default blood type distribution is as below:<br>
+          O = 44.2% | A = 33.39% | B = 17.01% | AB = 5.25%<br></ul>
+          <ul>2) By selecting countries with death rate 1 and below, the average blood type distribution is as below:<br>
+          O = 48.99% | A = 25.87% | B = 20.27% | AB = 4.84%<br></ul>
+          <ul>3) By selecting countries with death rate above 1 and below 10, the average blood type distribution is as below:<br>
+          O = 43.61% | A = 34.59% | B = 16.50% | AB = 5.44%<br></ul>
+          <ul>4) By selecting countries with death rate 10 and above, the average blood type distribution is as below:<br>
+          O = 45.60% | A = 39.68% | B = 10.63% | AB = 4.09%<br></ul>
+          <ul>5) By selecting countries with death rate 12.33 and above, the average blood type distribution is as below:<br>
+          O = 42.40% | A = 41.00% | B = 11.62% | AB = 4.98%<br></ul>
+          </div>
+      </td>
+    </tr>
+  </table>
+
+
+  <script>
+
+    function drawGraph(xText, yText) {
+      var plotterDiv = document.getElementById("plotterDiv");
+
+      for (i = plotterDiv.childNodes.length; i > 0; i--) {
+        plotterDiv.childNodes[i - 1].remove();
+      }
+
+      var margin = { top: 20, right: 20, bottom: 30, left: 40 },
+        width = 750 - margin.left - margin.right,
+        height = 450 - margin.top - margin.bottom;
+
+      /*
+       * value accessor - returns the value to encode for a given data object.
+       * scale - maps value to a visual display encoding, such as a pixel position.
+       * map function - maps from data value to display value
+       * axis - sets up axis
+       */
+
+      // setup x
+      var xValue = function (d) { return (d[xText] + 1); }, // data -> value
+        xScale = d3.scaleLog().range([0, width - 100]), // value -> display
+        xMap = function (d) { return xScale(xValue(d)); }, // data -> display
+        xAxis = d3.axisBottom().scale(xScale);
+
+      // setup y
+      var yValue = function (d) { return (d[yText] + 1); }, // data -> value
+        yScale = d3.scaleLog().range([height, 0]), // value -> display
+        yMap = function (d) { return yScale(yValue(d)); }, // data -> display
+        yAxis = d3.axisLeft().scale(yScale);
+
+
+      // setup fill color
+      var cValue = function (d) { return d.Continent; },
+        color = d3.scaleOrdinal(d3.schemeCategory20);
+      // add the graph canvas to the body of the webpage
+      var svg = d3.select("#plotterDiv").append("svg")
+        .style("background-color", "floralwhite") // set chart backgroun color of Scatterplot
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .attr("fill", "black")
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      // add the tooltip area to the webpage
+      var tooltip = d3.select("#plotterDiv").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
+      // load data
+      d3.csv("https://raw.githubusercontent.com/r2v2s3/temp/master/splot_dataset5.csv", function (error, data) {
+
+        // change string (from CSV) into number format
+        data.forEach(function (d) {
+          d[yText] = +d[yText];
+          d[xText] = +d[xText];
+          //console.dir (d);
+        });
+
+        // don't want dots overlapping axis, so add in buffer to data domain
+        xScale.domain([d3.min(data, xValue) - 1, d3.max(data, xValue) + 1]);
+        yScale.domain([d3.min(data, yValue) - 1, d3.max(data, yValue) + 1]);
+
+        // scales w/o extra padding
+        //  xScale.domain([d3.min(data, xValue), d3.max(data, xValue)]);
+        //  yScale.domain([d3.min(data, yValue), d3.max(data, yValue)]);
+
+        // x-axis
+        svg.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + height + ")")
+          .call(xAxis)
+          //.ticks(20, "s"));
+          //.ticks(4)
+          //.tickFormat(d3.format(".0s"))
+          .append("text")
+          .attr("class", "label")
+          .attr("x", width)
+          .attr("y", -6)
+          .style("text-anchor", "end")
+          .text(xText);
+
+        // y-axis
+        svg.append("g")
+          .attr("class", "y axis")
+          .call(yAxis)
+          .append("text")
+          .attr("class", "label")
+          .attr("transform", "rotate(-90)")
+          .attr("y", 6)
+          .attr("dy", ".71em")
+          .style("text-anchor", "end")
+          .text(yText);
+
+        // draw dots
+        svg.selectAll(".dot")
+          .data(data)
+          .enter().append("circle")
+          .attr("class", "dot")
+          .attr("r", 5)
+          .attr("cx", xMap)
+          .attr("cy", yMap)
+          .style("fill", function (d) { return color(cValue(d)); })
+          .on("mouseover", function (d) {
+            tooltip.transition()
+              .duration(190)
+              .style("opacity", .9);
+            tooltip.html(d["Country"] + "<br/> " + d.Continent + "<br/>(" + xValue(d)
+              + ", " + yValue(d) + ")")
+              .style("left", (d3.event.pageX + 10) + "px")
+              .style("top", (d3.event.pageY - 28) + "px");
+          })
+          .on("mouseout", function (d) {
+            tooltip.transition()
+              .duration(501)
+              .style("opacity", 0);
+          });
+
+        // draw legend
+        var legend = svg.selectAll(".legend")
+          .data(color.domain())
+          .enter().append("g")
+          .attr("class", "legend")
+          .attr("transform", function (d, i) { return "translate(20," + (i + 7) * 20 + ")"; });
+
+        // draw legend colored rectangles
+        legend.append("rect")
+          .attr("x", width - 18)
+          .attr("width", 18)
+          .attr("height", 18)
+          .style("fill", color);
+
+        // draw legend text
+        legend.append("text")
+          .attr("x", width - 24)
+          .attr("y", 9)
+          .attr("dy", ".35em")
+          .style("text-anchor", "end")
+          .text(function (d) { return d; })
+      });
+    }
+
+    drawGraph('case_fatality_per_k', 'confirmed_cases');
+
+    function setGraph() {
+      drawGraph($('#x-value').val(), $('#y-value').val());
+    }
+  </script>
+
+  <div>Below is a visualization that shows country wise blood type distribution<br><br></div>
+
+  <select id="country" onchange="invokeUpdate()">
+    <option value="All Countries">All Countries
+    <option value="Mauritius">Mauritius
+    <option value="Malta">Malta
+    <option value="Jamaica">Jamaica
+    <option value="Cyprus">Cyprus
+    <option value="Latvia">Latvia
+    <option value="New Zealand">New Zealand
+    <option value="Iceland">Iceland
+    <option value="Estonia">Estonia
+    <option value="Lithuania">Lithuania
+    <option value="Slovenia">Slovenia
+    <option value="Slovakia">Slovakia
+    <option value="Cuba">Cuba
+    <option value="Guinea">Guinea
+    <option value="Zimbabwe">Zimbabwe
+    <option value="Thailand">Thailand
+    <option value="Libya">Libya
+    <option value="Lebanon">Lebanon
+    <option value="Greece">Greece
+    <option value="Hungary">Hungary
+    <option value="Croatia">Croatia
+    <option value="Mauritania">Mauritania
+    <option value="Finland">Finland
+    <option value="Malaysia">Malaysia
+    <option value="Norway">Norway
+    <option value="North Macedonia">North Macedonia
+    <option value="Bulgaria">Bulgaria
+    <option value="Bosnia and Herzegovina">Bosnia and Herzegovina
+    <option value="Sudan">Sudan
+    <option value="Denmark">Denmark
+    <option value="El Salvador">El Salvador
+    <option value="Ethiopia">Ethiopia
+    <option value="Australia">Australia
+    <option value="Cameroon">Cameroon
+    <option value="Venezuela">Venezuela
+    <option value="Nepal">Nepal
+    <option value="Austria">Austria
+    <option value="Morocco">Morocco
+    <option value="Moldova">Moldova
+    <option value="Serbia">Serbia
+    <option value="Ireland">Ireland
+    <option value="Switzerland">Switzerland
+    <option value="Ghana">Ghana
+    <option value="Japan">Japan
+    <option value="Armenia">Armenia
+    <option value="Bahrain">Bahrain
+    <option value="Honduras">Honduras
+    <option value="Nigeria">Nigeria
+    <option value="Poland">Poland
+    <option value="Romania">Romania
+    <option value="Portugal">Portugal
+    <option value="Singapore">Singapore
+    <option value="Netherlands">Netherlands
+    <option value="United Arab Emirates">United Arab Emirates
+    <option value="Dominican Republic">Dominican Republic
+    <option value="Belgium">Belgium
+    <option value="Israel">Israel
+    <option value="Ukraine">Ukraine
+    <option value="Bolivia">Bolivia
+    <option value="Sweden">Sweden
+    <option value="Ecuador">Ecuador
+    <option value="Philippines">Philippines
+    <option value="China">China
+    <option value="Kazakhstan">Kazakhstan
+    <option value="Egypt">Egypt
+    <option value="Indonesia">Indonesia
+    <option value="Canada">Canada
+    <option value="Iraq">Iraq
+    <option value="Argentina">Argentina
+    <option value="Germany">Germany
+    <option value="France">France
+    <option value="Turkey">Turkey
+    <option value="Bangladesh">Bangladesh
+    <option value="Italy">Italy
+    <option value="Saudi Arabia">Saudi Arabia
+    <option value="Colombia">Colombia
+    <option value="Pakistan">Pakistan
+    <option value="Spain">Spain
+    <option value="Iran">Iran
+    <option value="United Kingdom">United Kingdom
+    <option value="Chile">Chile
+    <option value="Peru">Peru
+    <option value="Mexico">Mexico
+    <option value="South Africa">South Africa
+    <option value="Russia">Russia
+    <option value="India">India
+    <option value="Brazil">Brazil
+    <option value="US">US
+  </select>
+
+
+  <!-- Create a div where the graph will take place -->
+  <table style="border-collapse: collapse; border: none;">
+    <tr style="border: none;">
+      <td style="border: none;">
+        <div id="my_dataviz"></div>
+      </td>
+      <td style="border: none;">
+        <div style="margin-left: 50px">
+          <br>This visualization gives the opportunity to explore blood type distributions by individual countries.
+          <br>
+          Sample Text </div>
+      </td>
+    </tr>
+  </table>
+
+
+  <script>
+
+    function invokeUpdate() {
+      var value = document.getElementById("country").value;
+      update(value);
+    }
+
+    var selectedButton;
+
+    // set the dimensions and margins of the graph
+
+    var margin = { top: 20, right: 20, bottom: 30, left: 40 },
+      width = 750 - margin.left - margin.right,
+      height = 450 - margin.top - margin.bottom;
+
+    // append the svg object to the body of the page
+    var svg = d3.select("#my_dataviz")
+      .style("background-color", "floralwhite")
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform",
+        "translate(" + margin.left + "," + margin.top + ")");
+
+
+    // Initialize the X axis
+    var x = d3.scaleBand()
+      .range([0, width])
+      .padding(0.2);
+    var xAxis = svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+
+
+    // Initialize the Y axis
+    var y = d3.scaleLinear()
+      .range([height, 0]);
+    var yAxis = svg.append("g")
+      .attr("class", "myYaxis")
+
+
+    // ----------------
+    // Create a tooltip
+    // ----------------
+    var tooltip = d3.select("#my_dataviz")
+      .append("div")
+      .style("opacity", 0)
+      .attr("class", "tooltip")
+      .style("background-color", "white")
+      .style("border", "solid")
+      .style("border-width", "1px")
+      .style("border-radius", "5px")
+      .style("padding", "5px")
+
+    // Three function that change the tooltip when user hover / move / leave a cell
+    var mouseover = function (d) {
+      var subgroupValue = d[selectedButton];
+      tooltip
+        .html("Value: " + subgroupValue)
+        .style("opacity", 1)
+    }
+    var mousemove = function (d) {
+      tooltip
+        .style("left", (d3.mouse(this)[0] + 90) + "px") // It is important to put the +90: other wise the tooltip is exactly where the point is an it creates a weird effect
+        .style("top", (d3.mouse(this)[1]) + "px")
+    }
+    var mouseleave = function (d) {
+      tooltip
+        .style("opacity", 0)
+    }
+
+
+    // A function that create / update the plot for a given variable:
+    function update(selectedVar) {
+
+      selectedButton = selectedVar;
+
+      // Parse the Data
+      d3.csv("https://raw.githubusercontent.com/r2v2s3/temp/master/bar_dataset3.csv", function (data) {
+
+        // X axis
+        x.domain(data.map(function (d) { return d.Group; }))
+        xAxis.transition().duration(1000).call(d3.axisBottom(x)).selectAll("text")
+
+
+        // Add Y axis
+        y.domain([0, d3.max(data, function (d) { return +d[selectedVar] })]);
+        yAxis.transition().duration(1000).call(d3.axisLeft(y));
+
+        // variable u: map data to existing bars
+        var u = svg.selectAll("rect")
+          .data(data)
+
+        // update bars
+        u
+          .enter()
+          .append("rect")
+
+          .on("mouseover", mouseover)
+          .on("mousemove", mousemove)
+          .on("mouseleave", mouseleave)
+
+          .merge(u)
+          .transition()
+          .duration(1000)
+          .attr("x", function (d) { return x(d.Group); })
+          .attr("y", function (d) { return y(d[selectedVar]); })
+          .attr("width", x.bandwidth())
+          .attr("height", function (d) { return height - y(d[selectedVar]); })
+          .attr("fill", "#377eb8")
+      })
+
+    }
+
+    // Initialize plot
+    update('All Countries')
+
+  </script>
 
 </body>
+
 </html>
